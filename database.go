@@ -297,6 +297,45 @@ func getAllItems(planID string) (items []Item, flag bool) {
 
 	//Query statement
 	rows, err := stmt.Query(planID)
+	if err != nil {
+		log.Panic(err)
+		return items, false
+	}
+
+	var item Item
+	//scan the rows
+	for rows.Next() {
+		err = rows.Scan(&item.Title, &item.Description, &item.Completed, &item.ItemOwner)
+		if err != nil {
+			log.Panic(err)
+			return items, false
+		}
+		items = append(items, item)
+	}
+
+	return items, true
+}
+
+////////////////////update an item/////////////////////////////
+func updateItem(item Item) (successfull bool) {
+	//connect to database
+	db := connectDatabase()
+	defer db.Close()
+
+	//Prepare statement
+	stmt, err := db.Prepare("UPDATE _item SET item_description = $1, item_title = $2, item_completed = $3 WHERE item_id = $4;")
+	if err != nil {
+		log.Panic(err)
+		return false
+	}
+
+	//Execute the statement
+	_, err = stmt.Exec(item.Description, item.Title, item.Completed, item.ItemID)
+	if err != nil {
+		return false
+	}
+
+	return true
 }
 
 /////////////////////////////GROUP CRUD//////////////////////////////////////////////////
