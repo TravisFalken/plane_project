@@ -362,5 +362,5 @@ func getID(r *http.Request) (id string) {
 
 //func check if user has write access to the notes
 func validateWriteAccess(r *http.Request) bool {
-
+	
 }

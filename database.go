@@ -338,9 +338,71 @@ func updateItem(item Item) (successfull bool) {
 	return true
 }
 
+func deleteItem(itemID string) (successful bool) {
+	//Connect to database
+	db := connectDatabase()
+	defer db.Close()
+
+	//prepare statement
+	stmt, err := db.Prepare("DELETE FROM _item WHERE item_id = $1")
+	if err != nil {
+		log.Panic(err)
+		return false
+	}
+
+	//execute statement
+	_, err = stmt.Exec(itemID)
+	if err != nil {
+		log.Panic(err)
+		return false
+	}
+
+	return true
+}
+
 /////////////////////////////GROUP CRUD//////////////////////////////////////////////////
 
 //////////////////////////////PRIVILEGES CRUD////////////////////////////////////////
+
+///Add privileges to database : look at adding return the privilege id
+func addPrivilege(newPriv Privilege) (success bool) {
+	//connect to database
+	db := connectDatabase()
+	defer db.Close()
+
+	//Prepare statement
+	stmt, err := db.Prepare("INSERT INTO _privileges(plan_id, username, write) VALUES($1,$2,$3);")
+	if err != nil {
+		log.Panic(err)
+		return false
+	}
+
+	//Execute statement
+	_, err = stmt.Exec(newPriv.PlanID, newPriv.Username, newPriv.Write)
+	if err != nil {
+		log.Panic(err)
+		return false
+	}
+
+	return true
+}
+
+//Read privilege 		: Look into making more flexible (searching in different ways)
+func readPrivilege(privilegeID string) (success bool, privilege Privilege) {
+	//Connect to database
+	db := connectDatabase()
+	defer db.Close()
+
+	//Prepare statment
+	stmt, err := db.Prepare("SELECT plan_id, username, write FROM _privileges WHERE privileges_id = $1;")
+	if err != nil {
+		log.Panic(err)
+		return false, privilege
+	}
+
+	//Query statement
+	result, err := stmt.Query(privilegeID)
+}
 
 ///LOGIN SECTION/////////
 func addSessionToDatabase(sessionID string, username string) bool {
