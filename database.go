@@ -388,20 +388,64 @@ func addPrivilege(newPriv Privilege) (success bool) {
 }
 
 //Read privilege 		: Look into making more flexible (searching in different ways)
-func readPrivilege(privilegeID string) (success bool, privilege Privilege) {
+func readPrivilege(typeOfSearch string, key string) (success bool, privilege Privilege) {
 	//Connect to database
 	db := connectDatabase()
 	defer db.Close()
 
 	//Prepare statment
-	stmt, err := db.Prepare("SELECT plan_id, username, write FROM _privileges WHERE privileges_id = $1;")
+	stmt, err := db.Prepare("SELECT plan_id, privilege_id, username, write FROM _privileges WHERE $2 = $1;")
 	if err != nil {
 		log.Panic(err)
 		return false, privilege
 	}
 
 	//Query statement
-	result, err := stmt.Query(privilegeID)
+	result, err := stmt.Query(typeOfSearch, key)
+	if err != nil {
+		log.Panic(err)
+		return false, privilege
+	}
+	err = result.Scan(&privilege.PlanID, &privilege.PrivilegeID, &privilege.Username, &privilege.Write)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return true, privilege
+}
+
+//Get all of the privileges
+func getAllPrivileges(planID string) (success bool, privileges []Privilege) {
+	//connect to database
+	db := connectDatabase()
+	defer db.Close()
+
+	//Prepare statement
+	stmt, err := db.Prepare("SELECT privilege_id, username, write FROM _privileges WHERE plan_id = $1;")
+	if err != nil {
+		log.Panic(err)
+		return false, privileges
+	}
+
+	//Query database
+	result, err := stmt.Query(planID)
+	if err != nil {
+		log.Panic(err)
+		return false, privileges
+	}
+
+	var privilege Privilege
+	//Scan the result
+	for result.Next() {
+		err = result.Scan(&privilege.PrivilegeID, &privilege.Username, &privilege.Write)
+		if err != nil {
+			log.Panic(err)
+		}
+		privilege.PlanID = planID
+		privileges = append(privileges, privilege)
+	}
+
+	return true, privileges
 }
 
 ///LOGIN SECTION/////////
