@@ -472,6 +472,25 @@ func updatePrivilege(newPrivilege Privilege) (success bool) {
 
 }
 
+//Delete Privilege from database
+func deletePrivilege(privilegeToDelete Privilege) (success bool) {
+	//Connect to database
+	db := connectDatabase()
+	defer db.Close()
+
+	//Prepare statement
+	stmt, err := db.Prepare("DELETE FROM _privileges WHERE privilege_id = $1;")
+
+	//Execute statement
+	_, err = stmt.Exec(privilegeToDelete.PrivilegeID)
+	if err != nil {
+		log.Panic(err)
+		return false
+	}
+
+	return true
+}
+
 ///LOGIN SECTION/////////
 func addSessionToDatabase(sessionID string, username string) bool {
 	//Connect to database
