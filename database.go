@@ -414,7 +414,7 @@ func readPrivilege(typeOfSearch string, key string) (success bool, privilege Pri
 	return true, privilege
 }
 
-//Get all of the privileges
+//Get all of the privileges from a plan
 func getAllPrivileges(planID string) (success bool, privileges []Privilege) {
 	//connect to database
 	db := connectDatabase()
@@ -446,6 +446,30 @@ func getAllPrivileges(planID string) (success bool, privileges []Privilege) {
 	}
 
 	return true, privileges
+}
+
+//update a privilege
+func updatePrivilege(newPrivilege Privilege) (success bool) {
+	//Connect to database
+	db := connectDatabase()
+	defer db.Close()
+
+	//Prepare statement
+	stmt, err := db.Prepare("UPDATE _privileges SET write = $1 WHERE privilege_id = $2;")
+	if err != nil {
+		log.Panic(err)
+		return false
+	}
+
+	//Execute statement
+	_, err = stmt.Exec(newPrivilege.Write, newPrivilege.PrivilegeID)
+	if err != nil {
+		log.Panic(err)
+		return false
+	}
+
+	return true
+
 }
 
 ///LOGIN SECTION/////////
